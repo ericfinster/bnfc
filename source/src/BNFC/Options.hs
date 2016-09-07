@@ -26,7 +26,7 @@ data Mode
 
 -- | Target languages
 data Target = TargetC | TargetCpp | TargetCppNoStl | TargetCSharp
-            | TargetHaskell | TargetHaskellGadt | TargetLatex
+            | TargetHaskell | TargetHaskellGadt | TargetLatex | TargetScala
             | TargetJava | TargetOCaml | TargetProfile | TargetPygments
   deriving (Eq,Bounded, Enum,Ord)
 
@@ -43,6 +43,7 @@ instance Show Target where
   show TargetHaskellGadt  = "Haskell (with GADT)"
   show TargetLatex        = "Latex"
   show TargetJava         = "Java"
+  show TargetScala        = "Scala"
   show TargetOCaml        = "OCaml"
   show TargetProfile      = "Haskell (with permutation profiles)"
   show TargetPygments     = "Pygments"
@@ -125,6 +126,8 @@ targetOptions :: [ OptDescr (SharedOptions -> SharedOptions)]
 targetOptions = 
   [ Option "" ["java"]          (NoArg (\o -> o {target = TargetJava}))
     "Output Java code [default: for use with JLex and CUP]"
+  , Option "" ["scala"]         (NoArg (\o -> o {target = TargetScala}))
+    "Output Scala code for scala-bison and JLex"
   , Option "" ["haskell"]       (NoArg (\o -> o {target = TargetHaskell}))
     "Output Haskell code for use with Alex and Happy (default)"
   , Option "" ["haskell-gadt"]  (NoArg (\o -> o {target = TargetHaskellGadt}))
@@ -280,6 +283,7 @@ translateOldOptions :: [String] -> [String]
 translateOldOptions = map translateOne
   where translateOne "-java"          = "--java"
         translateOne "-java1.5"       = "--java"
+        translateOne "-scala"         = "--scala"
         translateOne "-c"             = "--c"
         translateOne "-cpp"           = "--cpp"
         translateOne "-cpp_stl"       = "--cpp"

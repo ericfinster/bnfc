@@ -37,6 +37,7 @@ import BNFC.Backend.Haskell
 import BNFC.Backend.HaskellGADT
 import BNFC.Backend.HaskellProfile
 import BNFC.Backend.Java
+import BNFC.Backend.Scala
 import BNFC.Backend.Latex
 import BNFC.Backend.OCaml
 import BNFC.Backend.Pygments
@@ -81,6 +82,7 @@ maketarget t = case t of
     TargetHaskellGadt  -> makeHaskellGadt
     TargetLatex        -> makeLatex
     TargetJava         -> makeJava
+    TargetScala        -> makeScala
     TargetOCaml        -> makeOCaml
     TargetProfile      -> error "Not implemented"
     TargetPygments     -> makePygments
