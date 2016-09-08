@@ -37,15 +37,59 @@
 module BNFC.Backend.Scala ( makeScala ) where
 
 import BNFC.CF
-import BNFC.Options as Options
+import BNFC.Utils
+import BNFC.Options 
 import BNFC.Backend.Base
 import BNFC.Backend.Scala.CFtoAbstract
 import BNFC.Backend.Scala.CFtoJLex15
 import BNFC.Backend.Scala.CFtoBisonScala
 
+import Data.List (intercalate)
+import Data.Maybe (catMaybes)
+import System.FilePath (pathSeparator, (<.>))
+
+-- naming conventions
+
+type Options = SharedOptions
+
+absFile, lexFile, bisonFile :: Options -> String
+absFile = mkFile noLang "Syntax" "scala"
+lexFile = mkFile noLang "Lexer" "flex"
+bisonFile = mkFile noLang "Parser" "y"
+
+mkFile :: (Options -> String -> String) -> String -> String -> Options -> FilePath
+mkFile addLang name ext opts = pkgToDir (mkMod addLang name opts) <.> ext
+
+mkMod :: (Options -> String -> String) -> String -> Options -> String
+mkMod addLang name opts = mkNamespace opts <.> mod
+  where
+    [] <.> s = s
+    s1 <.> s2 = s1 ++ "." ++ s2
+    mod | inDir opts = name
+        | otherwise  = addLang opts name
+
+noLang :: Options -> String -> String
+noLang _ name = name
+
+mkNamespace :: Options -> FilePath
+mkNamespace opts = intercalate "." $ catMaybes [inPackage opts, dir]
+  where
+    dir | inDir opts = Just (mkName [] CamelCase (lang opts))
+        | otherwise  = Nothing
+
+-- withLang :: Options -> String -> String
+-- withLang opts name = (mkName [] CamelCase (lang opts)) ++ name
+
+pkgToDir :: String -> FilePath
+pkgToDir s = replace '.' pathSeparator s
+
 makeScala :: SharedOptions -> CF -> MkFiles ()
-makeScala options@Options{..} cf = do
-  mkfile "Abstract.scala" (cf2Abstract cf)
-  let (doc, env) = cf2jlex "bnfc" cf
-  mkfile "Lexer.l" doc
-  mkfile "Parser.y" (cf2Bison "Parser" cf env)
+makeScala opts cf = do
+  mkfile (absFile opts) (cf2Abstract pkgName cf)
+  let (lexDoc, env) = cf2jlex pkgName cf
+  mkfile (lexFile opts) lexDoc
+  mkfile (bisonFile opts) (cf2Bison pkgName cf env)
+
+  where pkgName = case inPackage opts of
+                    Just p -> p ++ ".syntax"
+                    Nothing -> "syntax"

@@ -160,7 +160,7 @@ specificOptions =
   , ( Option ['p'] []
       (ReqArg (\n o -> o {inPackage = Just n}) "<namespace>")
       "Prepend <namespace> to the package/module name"
-    , [TargetCpp, TargetCSharp, TargetHaskell, TargetHaskellGadt, TargetProfile, TargetJava] )
+    , [TargetCpp, TargetCSharp, TargetHaskell, TargetHaskellGadt, TargetProfile, TargetJava, TargetScala] )
   , ( Option [] ["jflex"] (NoArg (\o -> o {javaLexerParser = JFlexCup}))
           "Lex with JFlex, parse with CUP"
     , [TargetJava] )
@@ -249,7 +249,7 @@ help = unlines $
     :usageInfo "Common option"      commonOption
     :usageInfo "Target languages" targetOptions
     :map targetUsage helpTargets
-  where helpTargets = [TargetHaskell, TargetJava, TargetCpp, TargetCSharp ]
+  where helpTargets = [TargetHaskell, TargetJava, TargetCpp, TargetCSharp, TargetScala ]
         targetUsage t = usageInfo
                         (printf "Special options for the %s backend" (show t))
                         (map fst $ filter(elem t . snd)specificOptions)
