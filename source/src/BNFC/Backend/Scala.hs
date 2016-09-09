@@ -44,52 +44,55 @@ import BNFC.Backend.Scala.CFtoAbstract
 import BNFC.Backend.Scala.CFtoJLex15
 import BNFC.Backend.Scala.CFtoBisonScala
 
-import Data.List (intercalate)
-import Data.Maybe (catMaybes)
-import System.FilePath (pathSeparator, (<.>))
+-- import Data.List (intercalate)
+-- import Data.Maybe (catMaybes)
+import System.FilePath (pathSeparator)
 
 -- naming conventions
 
-type Options = SharedOptions
+-- absFile, lexFile, bisonFile :: Options -> String
+-- absFile = mkFile withLang "Syntax" "scala"
+-- lexFile = mkFile withLang "Lexer" "flex"
+-- bisonFile = mkFile withLang "Parser" "y"
 
-absFile, lexFile, bisonFile :: Options -> String
-absFile = mkFile noLang "Syntax" "scala"
-lexFile = mkFile noLang "Lexer" "flex"
-bisonFile = mkFile noLang "Parser" "y"
+-- mkFile :: (Options -> String -> String) -> String -> String -> Options -> FilePath
+-- mkFile addLang name ext opts = pkgToDir (mkMod addLang name opts) <.> ext
 
-mkFile :: (Options -> String -> String) -> String -> String -> Options -> FilePath
-mkFile addLang name ext opts = pkgToDir (mkMod addLang name opts) <.> ext
+-- mkMod :: (Options -> String -> String) -> String -> Options -> String
+-- mkMod addLang name opts = mkNamespace opts <.> mod
+--   where
+--     [] <.> s = s
+--     s1 <.> s2 = s1 ++ "." ++ s2
+--     mod | inDir opts = name
+--         | otherwise  = addLang opts name
 
-mkMod :: (Options -> String -> String) -> String -> Options -> String
-mkMod addLang name opts = mkNamespace opts <.> mod
-  where
-    [] <.> s = s
-    s1 <.> s2 = s1 ++ "." ++ s2
-    mod | inDir opts = name
-        | otherwise  = addLang opts name
+-- noLang :: Options -> String -> String
+-- noLang _ name = name
 
-noLang :: Options -> String -> String
-noLang _ name = name
-
-mkNamespace :: Options -> FilePath
-mkNamespace opts = intercalate "." $ catMaybes [inPackage opts, dir]
-  where
-    dir | inDir opts = Just (mkName [] CamelCase (lang opts))
-        | otherwise  = Nothing
+-- mkNamespace :: Options -> FilePath
+-- mkNamespace opts = intercalate "." $ catMaybes [inPackage opts, dir]
+--   where
+--     dir | inDir opts = Just (mkName [] CamelCase (lang opts))
+--         | otherwise  = Nothing
 
 -- withLang :: Options -> String -> String
--- withLang opts name = (mkName [] CamelCase (lang opts)) ++ name
+-- withLang opts name = name ++ (mkName [] CamelCase (lang opts)) 
 
 pkgToDir :: String -> FilePath
 pkgToDir s = replace '.' pathSeparator s
 
 makeScala :: SharedOptions -> CF -> MkFiles ()
 makeScala opts cf = do
-  mkfile (absFile opts) (cf2Abstract pkgName cf)
-  let (lexDoc, env) = cf2jlex pkgName cf
-  mkfile (lexFile opts) lexDoc
-  mkfile (bisonFile opts) (cf2Bison pkgName cf env)
+  mkfile (pkgDir ++ "/" ++ cname ++ "Syntax.scala") (cf2Abstract pkgName cf)
+  let (lexDoc, env) = cf2jlex pkgName cname cf
+  mkfile (pkgDir ++ "/" ++ cname ++ ".flex") lexDoc
+  mkfile (pkgDir ++ "/" ++ cname ++ ".y") (cf2Bison pkgName cf env)
 
-  where pkgName = case inPackage opts of
-                    Just p -> p ++ ".syntax"
-                    Nothing -> "syntax"
+  where lname = mkName [] LowerCase (lang opts)
+        cname = mkName [] CamelCase (lang opts)
+
+        pkgName = case inPackage opts of
+                    Just p -> p ++ "." ++ lname
+                    Nothing -> lname
+
+        pkgDir = pkgToDir pkgName
