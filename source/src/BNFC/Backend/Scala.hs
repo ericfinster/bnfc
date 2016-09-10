@@ -86,7 +86,7 @@ makeScala opts cf = do
   mkfile (pkgDir ++ "/" ++ cname ++ "Syntax.scala") (cf2Abstract pkgName cf)
   let (lexDoc, env) = cf2jlex pkgName cname cf
   mkfile (pkgDir ++ "/" ++ cname ++ ".flex") lexDoc
-  mkfile (pkgDir ++ "/" ++ cname ++ ".y") (cf2Bison pkgName cf env)
+  mkfile (pkgDir ++ "/" ++ cname ++ ".y") (cf2Bison pkgName cname cf env)
 
   where lname = mkName [] LowerCase (lang opts)
         cname = mkName [] CamelCase (lang opts)

@@ -60,22 +60,35 @@ type Action      = String
 type MetaVar     = String
 
 --The environment comes from the CFtoFlex
-cf2Bison :: String -> CF -> SymEnv -> String
-cf2Bison pkgName cf env = unlines $
-  [header pkgName cf,
-   "%token ERROR",
-   "%token NOP",
-   tokens user env,
-   declarations cf,
-   specialToks cf,
-   startSymbol cf,
-   "%%",
-   prRules (rulesForBison cf env),
-   "%%",
-   "  def yyerror(s:String) = println(s);"
+cf2Bison :: String -> String -> CF -> SymEnv -> String
+cf2Bison pkgName lname cf env = unlines $
+  [ header pkgName cf
+  , "%token ERROR"
+  , "%token NOP"
+  , tokens user env
+  , declarations cf
+  , specialToks cf
+  , startSymbol cf
+  , "%%"
+  , prRules (rulesForBison cf env)
+  , "%%"
+  , "  def yyerror(s:String): Unit = { println(s) }"
+  , "  private var theLexer: MinittLexer = null"
+  , "  def lexer: MinittLexer = theLexer"
+  , "  def lexer_=(l: MinittLexer): Unit = { yyreset(l.iterator) }"
+  , "  def parseAll: Option[" ++ sc ++ "] ="
+  , "    try {"
+  , "      val res = parse_" ++ ss ++ "()"
+  , "      parse_YYEOF()"
+  , "      Some(res)"
+  , "    } catch {"
+  , "      case YYError(_) => None"
+  , "    }"
   ] ++ definedRules cf
   where
    user = fst (unzip (tokenPragmas cf))
+   ss = identCat (firstEntry cf)
+   sc = varName (firstCat cf)
 
 header :: String -> CF -> String
 header pkgName cf = unlines
