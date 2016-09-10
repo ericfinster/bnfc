@@ -76,13 +76,13 @@ cf2Bison pkgName lname cf env = unlines $
   , "  private var theLexer: MinittLexer = null"
   , "  def lexer: MinittLexer = theLexer"
   , "  def lexer_=(l: MinittLexer): Unit = { yyreset(l.iterator) }"
-  , "  def parseAll: Option[" ++ sc ++ "] ="
+  , "  def parseAll: Either[String, " ++ sc ++ "] ="
   , "    try {"
   , "      val res = parse_" ++ ss ++ "()"
   , "      parse_YYEOF()"
-  , "      Some(res)"
+  , "      Right(res)"
   , "    } catch {"
-  , "      case YYError(_) => None"
+  , "      case YYError(s) => Left(s)"
   , "    }"
   ] ++ definedRules cf
   where
