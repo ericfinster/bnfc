@@ -43,51 +43,17 @@ import BNFC.Backend.Base
 import BNFC.Backend.Scala.CFtoAbstract
 import BNFC.Backend.Scala.CFtoJLex15
 import BNFC.Backend.Scala.CFtoBisonScala
+import BNFC.Backend.Scala.CFtoPrinter
 
--- import Data.List (intercalate)
--- import Data.Maybe (catMaybes)
 import System.FilePath (pathSeparator)
-
--- naming conventions
-
--- absFile, lexFile, bisonFile :: Options -> String
--- absFile = mkFile withLang "Syntax" "scala"
--- lexFile = mkFile withLang "Lexer" "flex"
--- bisonFile = mkFile withLang "Parser" "y"
-
--- mkFile :: (Options -> String -> String) -> String -> String -> Options -> FilePath
--- mkFile addLang name ext opts = pkgToDir (mkMod addLang name opts) <.> ext
-
--- mkMod :: (Options -> String -> String) -> String -> Options -> String
--- mkMod addLang name opts = mkNamespace opts <.> mod
---   where
---     [] <.> s = s
---     s1 <.> s2 = s1 ++ "." ++ s2
---     mod | inDir opts = name
---         | otherwise  = addLang opts name
-
--- noLang :: Options -> String -> String
--- noLang _ name = name
-
--- mkNamespace :: Options -> FilePath
--- mkNamespace opts = intercalate "." $ catMaybes [inPackage opts, dir]
---   where
---     dir | inDir opts = Just (mkName [] CamelCase (lang opts))
---         | otherwise  = Nothing
-
--- withLang :: Options -> String -> String
--- withLang opts name = name ++ (mkName [] CamelCase (lang opts)) 
-
-pkgToDir :: String -> FilePath
-pkgToDir s = replace '.' pathSeparator s
 
 makeScala :: SharedOptions -> CF -> MkFiles ()
 makeScala opts cf = do
-  mkfile (pkgDir ++ "/" ++ cname ++ "Syntax.scala") (cf2Abstract pkgName cf)
+  mkfile (pkgDir ++ "/" ++ cname ++ "Syntax.scala") (cf2Abstract pkgName cname cf)
   let (lexDoc, env) = cf2jlex pkgName cname cf
   mkfile (pkgDir ++ "/" ++ cname ++ ".flex") lexDoc
   mkfile (pkgDir ++ "/" ++ cname ++ ".y") (cf2Bison pkgName cname cf env)
-
+  mkfile (pkgDir ++ "/" ++ cname ++ "Printer.scala") (cf2Printer pkgName cname cf)
   where lname = mkName [] LowerCase (lang opts)
         cname = mkName [] CamelCase (lang opts)
 
@@ -95,4 +61,4 @@ makeScala opts cf = do
                     Just p -> p ++ "." ++ lname
                     Nothing -> lname
 
-        pkgDir = pkgToDir pkgName
+        pkgDir = replace '.' pathSeparator pkgName

@@ -42,10 +42,12 @@
 module BNFC.Backend.Scala.CFtoJLex15 ( cf2jlex ) where
 
 import BNFC.CF
-import BNFC.Backend.Java.RegToJLex
+import BNFC.Backend.Scala.RegToJLex
 import BNFC.Utils (cstring)
 import BNFC.Backend.Common.NamedVariables
 import Text.PrettyPrint
+
+-- import Debug.Trace(trace)
 
 --The environment must be returned for the parser to use.
 cf2jlex :: String -> String -> CF -> (Doc, SymEnv)
@@ -73,6 +75,8 @@ prelude packageBase lname = vcat
     , "%unicode"
     , "%type" <+> text lname <> "Tokens.YYToken"
     , "%char"
+    -- , "%line"
+    -- , "%column"
     , "%{"
     , "  import" <+> text lname <> "Tokens._"
     , ""
@@ -135,6 +139,7 @@ lexSymbols jflex ss = vcat $  map transSym ss
     escapeChars = concatMap (escapeChar jflex)
 
 restOfJLex :: CF -> Doc
+-- restOfJLex cf | trace ("user tokens: " ++ concat (map show (tokenPragmas cf))) False = undefined
 restOfJLex cf = vcat
     [ lexComments (comments cf)
     , ""
