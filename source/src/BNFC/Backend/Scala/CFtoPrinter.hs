@@ -133,6 +133,7 @@ ifList cf cat = render $ nest 2 $ vcat listDef
                then [ ""
                     , "def tokenizeList" <> type_ <> parens ("a: List[" <> type_ <> "]") <> ": Token ="
                     , "  a match {"
+                    , "    case Nil => Phrase()"
                     , nest 4 $ vcat cases
                     , "  }"
                     , ""
@@ -140,12 +141,13 @@ ifList cf cat = render $ nest 2 $ vcat listDef
                     , "  new Tokenizable[List[" <> type_ <> "]] {"
                     , "    def tokenize(l: List[" <> type_ <> "]): Token = tokenizeList" <> type_ <> "(l)"
                     , "  }"
+                    , ""
                     ]
                else []
 
 mkPrtListCase :: Rule -> Doc
 mkPrtListCase (Rule f (ListCat c) rhs)
-  | isNilFun f = "case" <+> "Nil" <+> "=>" <+> body
+  | isNilFun f = empty -- "case" <+> "Nil" <+> "=>" <+> body
   | isOneFun f = "case" <+> "x :: Nil" <+> "=>" <+> body
   | isConsFun f = "case" <+> "x :: xs" <+> "=>" <+> body
   | otherwise = empty -- (++) constructor

@@ -108,7 +108,7 @@ cMacros = vcat [
   "CAPITAL = [A-Z\\xC0-\\xD6\\xD8-\\xDE]",
   "SMALL = [a-z\\xDF-\\xF6\\xF8-\\xFF]",
   "DIGIT = [0-9]",
-  "IDENT = ({LETTER}|{DIGIT}|['_])",
+  "IDENT = ({LETTER}|{DIGIT}|[-'_])",
   "%state COMMENT",
   "%state CHAR",
   "%state CHARESC",
